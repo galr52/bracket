@@ -1,0 +1,8 @@
+<div>
+  <form>
+    <md-input placeholder="First name" #players ></md-input>
+    <!--<input [(ngModel)]="players" />-->
+    <button md-raised-button color="primary" (click)="generate(players.value)">PRIMARY RAISED</button>
+  </form>
+  <div #brackets></div>
+</div>
