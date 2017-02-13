@@ -1,5 +1,11 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { PlayerArray } from './player.model';
+var PouchDB = require('pouchdb');
+var shortid = require('shortid');
+
+var db = new PouchDB('http://localhost:5984/tournament');
+let self: any;
+
 declare var $: JQueryStatic;
 
 @Component({
@@ -11,7 +17,13 @@ declare var $: JQueryStatic;
 export class BracketComponent implements OnInit, AfterViewInit {
   @ViewChild('brackets') el: ElementRef;
   private players: PlayerArray;
-  constructor() { }
+  private _id;
+  private _rev;
+
+  constructor() { 
+    this._id = shortid.generate();
+    self = this;
+  }
 
   ngOnInit() {
   }
@@ -23,6 +35,7 @@ export class BracketComponent implements OnInit, AfterViewInit {
     container.bracket({
       init: this.players.getAsTeams(),
       save: this.saveFn,
+      dir: 'rl',
       userData: 'http://myapi'
     });
   }
@@ -31,12 +44,17 @@ export class BracketComponent implements OnInit, AfterViewInit {
     console.log('POST ' + userData + ' ' + data);
     let json = JSON.stringify(data);
     console.log('POST ' + userData + ' ' + json);
-    /* You probably want to do something like this
-    jQuery.ajax("rest/"+userData, {contentType: 'application/json',
-                                  dataType: 'json',
-                                  type: 'post',
-                                  data: json})
-    */
+
+    data._id = self._id;
+    data._rev = self._rev;
+
+    db.put(data).then(function (response) {
+      // handle response
+      self._rev = response.rev;
+      console.log(response);
+    }).catch(function (err) {
+      console.log(err);
+    });
   }
 
   generate(players: string) {
